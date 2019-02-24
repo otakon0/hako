@@ -193,23 +193,6 @@ bool updateCentroids(){
 		loop++;
 		for(int i=0;i<g_numcentroids;++i){
 
-			/* Convergence is detected when no data points change their cluster assignmen */
-			bool flag = true;
-			for(int j=0;j<g_numthreads-1;++j){
-        		for(int k=0;k<g_blocksize;++k){
-            		if(flag && g_positionAcc[j][k] != g_lastPositionAcc[j][k]) flag = false;
-					g_lastPositionAcc[j][k] = g_positionAcc[j][k];
-        		}
-    		}
-    		int len = g_numclusters - (g_blocksize)*(g_numthreads-1);
-			int idx = g_numthreads-1;
-    		for(int j=0;j<len;++j){
-				if(flag && g_positionAcc[idx][j] != g_lastPositionAcc[idx][j]) flag = false;
-				g_lastPositionAcc[idx][j] = g_positionAcc[idx][j];
-    		}
-
-			g_isConvergence = flag;
-
 			for(int j=0;j<g_numdimensions;++j){
 				g_centroids[i][j] = 0.0;
 			}
@@ -227,6 +210,24 @@ bool updateCentroids(){
 			}
 
 		}
+
+        /* Convergence is detected when no data points change their cluster assignmen */
+        bool flag = true;
+        for(int j=0;j<g_numthreads-1;++j){
+            for(int k=0;k<g_blocksize;++k){
+                if(flag && g_positionAcc[j][k] != g_lastPositionAcc[j][k]) flag = false;
+                g_lastPositionAcc[j][k] = g_positionAcc[j][k];
+            }
+        }
+        int len = g_numclusters - (g_blocksize)*(g_numthreads-1);
+        int idx = g_numthreads-1;
+        for(int j=0;j<len;++j){
+            if(flag && g_positionAcc[idx][j] != g_lastPositionAcc[idx][j]) flag = false;
+            g_lastPositionAcc[idx][j] = g_positionAcc[idx][j];
+        }
+		g_isConvergence = flag;
+
+
 		pthread_cond_broadcast(&g_cond_update);
 		return true;
 	}
